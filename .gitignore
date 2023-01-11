@@ -1,7 +1,13 @@
 env
 
-#ignore glove
+#ignore files
 /glove.6B.50d.txt
+/test.csv
+/train.csv
+/Twitter_Data.csv
 
 #ignore download file
 /download.ipynb
+
+#ignore folders
+/wordcloud
