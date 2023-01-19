@@ -45,7 +45,6 @@ page_bg_img = f"""
 </style>
 """
 
-font = '<p style="color:Black"></p>'
 
 st.markdown(page_bg_img, unsafe_allow_html=True)
 
@@ -58,8 +57,9 @@ st.set_option('deprecation.showfileUploaderEncoding', False)
 st.sidebar.header('User Input')
 st.sidebar.subheader('Single Text Analysis')
 single_review = st.sidebar.text_input('Enter text below:')
+st.sidebar.header('')
 st.sidebar.subheader('Multiple Text Analysis')
-upload_file = st.sidebar.file_uploader("Upload your input CSV file", type=["csv"])
+upload_file = st.sidebar.file_uploader("Upload your input CSV file:", type=["csv"])
 count_positive = 0
 count_negative = 0
 count_neutral = 0
@@ -92,8 +92,8 @@ if upload_file is not None:
         st.write("""# The file is BALANCED between POSTIVE, NEGATIVE, and NEUTRAL Texts """)
         
     layout = go.Layout(
-        title = 'Multiple Reviews Analysis',
-        xaxis = dict(title = 'Category'),
+        title = 'Multiple Text Analysis',
+        xaxis = dict(title = 'Sentiment'),
         yaxis = dict(title = 'Number of reviews'),
     )
     
@@ -131,3 +131,4 @@ with open("sentiment_analysis_template.csv", "rb") as fp:
 
 st.sidebar.header('')
 st.sidebar.subheader("""Created by Revalida Group 5""")
+st.sidebar.subheader("""All rights reserved 2023""")
