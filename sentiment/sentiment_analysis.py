@@ -32,6 +32,7 @@ page_bg_img = f"""
 
 [data-testid="stToolbar"] {{
    right: 2rem; 
+   display: none;
 }}
 
 [data-testid="stSidebar"] {{
@@ -70,9 +71,9 @@ if upload_file is not None:
         url = 'http://127.0.0.1:8000/classify/?text='+str(input_df.iloc[i])
         r = requests.get(url)
         result = r.json()["text_sentiment"]
-        if result == 'positive':
+        if result == "positive":
             count_positive += 1
-        elif result == 'negative':
+        elif result == "negative":
             count_negative += 1
         else:
             count_neutral += 1
@@ -105,10 +106,10 @@ elif single_review:
     url = 'http://127.0.0.1:8000/classify/?text='+single_review
     r = requests.get(url)
     result = r.json()["text_sentiment"]
-    if result == 'positive':
+    if result == "positive":
         st.write("""# The Text is POSITIVE! Nice """)
         st.image('positive.png')
-    elif result == 'negative':
+    elif result == "negative":
         st.write("""# The Text is NEGATIVE! Oh no """)
         st.image('negative.png')
     else:
