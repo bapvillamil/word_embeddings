@@ -1,4 +1,5 @@
 env
+.vscode
 
 #ignore files
 /glove.6B.50d.txt
