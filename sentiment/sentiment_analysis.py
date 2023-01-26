@@ -2,14 +2,54 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import requests
+import nltk
+from nltk import word_tokenize
+from nltk.corpus import wordnet
 import plotly.graph_objs as go
 import plotly.express as px
 import base64
 from plotly.offline import iplot
 from pandas.io.json import json_normalize
+from PIL import Image
+import matplotlib.pyplot as plt
+
+def negation(sentence):	
+    '''
+    Input: Tokenized sentence (List of words)
+    Output: Tokenized sentence with negation handled (List of words)
+    '''
+    temp = int(0)
+    for i in range(len(sentence)):
+        if sentence[i-1] in ['not',"n't"]:
+            antonyms = []
+            for syn in wordnet.synsets(sentence[i]):
+                syns = wordnet.synsets(sentence[i])
+                w1 = syns[0].name()
+                temp = 0
+                for l in syn.lemmas():
+                    if l.antonyms():
+                        antonyms.append(l.antonyms()[0].name())
+                max_dissimilarity = 0
+                for ant in antonyms:
+                    syns = wordnet.synsets(ant)
+                    w2 = syns[0].name()
+                    syns = wordnet.synsets(sentence[i])
+                    w1 = syns[0].name()
+                    word1 = wordnet.synset(w1)
+                    word2 = wordnet.synset(w2)
+                    if isinstance(word1.wup_similarity(word2), float) or isinstance(word1.wup_similarity(word2), int):
+                        temp = 1 - word1.wup_similarity(word2)
+                    if temp>max_dissimilarity:
+                        max_dissimilarity = temp
+                        antonym_max = ant
+                        sentence[i] = antonym_max
+                        sentence[i-1] = ''
+    while '' in sentence:
+        sentence.remove('')
+    sentence = ' '.join(sentence)
+    return sentence
 
 
-# st.set_page_config(layout="wide")
 fig = go.Figure()
 
 @st.experimental_memo
@@ -18,84 +58,101 @@ def get_img_as_base64(file):
         data = f.read()
     return base64.b64encode(data).decode()
 
-img1 = get_img_as_base64("bg.jpg")
-img2 = get_img_as_base64("bg2.jpg")
+img1 = get_img_as_base64("web_bg.jpg")
+img2 = Image.open('logo_new.png')
 
-# page_bg_img = f"""
-# <style>
-# [data-testid="stAppViewContainer"] {{
-#     background-image: url("data:image/png;base64, {img1}");
-#     background-size: cover;
-# }}
-    
-# [data-testid="stHeader"] {{
-#     background-color: rgba(0,0,0,0);
-# }}
+page_bg_img = f"""
+<style>
+[data-testid="stAppViewContainer"] {{
+    background-image: url("data:image/png;base64, {img1}");
+    background-size: cover;
+}}
+</style>
+"""
+st.markdown(page_bg_img, unsafe_allow_html=True)
 
-# [data-testid="stToolbar"] {{
-#    right: 2rem; 
-# }}
-
-# [data-testid="stSidebar"] {{
-#     background-image: url("data:image/png;base64, {img2}");
-#     background-size: cover;
-# }}
-
-# .sidebar .sidebar-content {{
-#     width: 100px;
-# }}
-# </style>
-# """
-
-
-# with open('style.css') as f:
-#     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-
-# st.markdown(page_bg_img, unsafe_allow_html=True)
-
-
-st.markdown("<h1 style='text-align: center; color: gray; font-family:Papyrus'>Sentiment Analysis</h1>", unsafe_allow_html=True)
-st.write('This application analyzes if a text or a file containing numerous words is Positve, Negative, or Neutral in nature')
+st.image(img2)
 st.write('')
 st.write('')
-
-
 
 st.set_option('deprecation.showfileUploaderEncoding', False)
-analysis_type = st.radio("Analysis Type:", 
-                ("Single Text Analysis", "Multiple Text Analysis"), horizontal=True)
-
-count_positive = 0
-count_negative = 0
-count_neutral = 0
 
 
-if analysis_type == "Single Text Analysis":
+option = st.selectbox(
+    'Analysis Type:',
+    ('Single Text Analysis', 'Multiple Text Analysis'))
+st.markdown("")
+st.markdown("")
 
+
+
+if option == "Single Text Analysis":
+
+    st.markdown("")
     single_review = st.text_input('Enter text below:')
+    single_review = negation(word_tokenize(single_review))
     
     url = 'http://127.0.0.1:8000/classify/?text='+single_review
     r = requests.get(url)
     result = r.json()["text_sentiment"]
-    if result == 'positive':
-        st.markdown("<h3 style='text-align: center; color: green; font-family: Garamond'>The Text is POSITIVE! Nice</h3>", unsafe_allow_html=True)
-        st.markdown("![Alt Text](https://media.tenor.com/yFi06hL-W1IAAAAC/smiley.gif)")
 
+
+    if result == 'positive':
+        x1, x2, x3, x4 = st.columns((2, 3, 3, 2))
+        with x1:
+            pass
+        with x2:
+            st.image("pos.png")
+        with x3:
+            st.markdown("")
+            st.markdown("")
+            st.markdown("")
+            st.markdown("<h3 style='text-align: center; color: green'>The Text is POSITIVE! Nice</h3>", unsafe_allow_html=True)
+        with x4:
+            pass
 
     elif result == 'negative':
-        st.markdown("<h3 style='text-align: center; color: red; font-family: Garamond'>The Text is NEGATIVE! Oh no</h3>", unsafe_allow_html=True)
-        st.markdown("![Alt Text](https://media.tenor.com/fZzcWofc3aoAAAAC/thumbs-down-emoji.gif)")
-
+        x1, x2, x3, x4 = st.columns((2, 3, 3, 2))
+        with x1:
+            pass
+        with x2:
+            st.image("neg.png")
+        with x3:
+            st.markdown("")
+            st.markdown("")
+            st.markdown("")
+            st.markdown("<h3 style='text-align: center; color: red'>The Text is NEGATIVE! Oh no</h3>", unsafe_allow_html=True)
+        with x4:
+            pass
+        
     elif result == 'neutral' and single_review != "":
-        st.markdown("<h3 style='text-align: center; color: blue; font-family: Garamond'>The Text is NEUTRAL. Safe</h3>", unsafe_allow_html=True)
-        st.image('neutral.png')
+        x1, x2, x3, x4 = st.columns((2, 3, 3, 2))
+        with x1:
+            pass
+        with x2:
+            st.image("neut.png")
+        with x3:
+            st.markdown("")
+            st.markdown("")
+            st.markdown("")
+            st.markdown("<h3 style='text-align: center; color: yellow'>The Text is NEUTRAL. Safe</h3>", unsafe_allow_html=True)
+        with x4:
+            pass
 
 
 
 
-elif analysis_type == "Multiple Text Analysis":
+elif option == "Multiple Text Analysis":
+
+    
+    count_positive = 0
+    count_negative = 0
+    count_neutral = 0
     
     upload_file = st.file_uploader("Upload your input CSV file:", type=["csv"])
+    st.markdown("")
+    st.markdown("")
+
 
     if upload_file is not None:
 
@@ -111,43 +168,70 @@ elif analysis_type == "Multiple Text Analysis":
                 count_negative += 1
             else:
                 count_neutral += 1
-            
-        x = ["Positive", "Negative", "Neutral"]
-        y = [count_positive, count_negative, count_neutral]
-    
-        if count_positive > count_negative:
-            st.write("""# Majority of the file contains POSITIVE Texts """)
-            st.image('positive.png')
-        elif count_negative > count_positive:
-            st.write(""" # Majority of the file contains NEGATIVE Texts """)
-            st.image('negative.png')
-        elif count_positive == count_negative:
-            st.write("""# The file contains EQUAL number of POSITIVE and NEGATIVE Texts""")
-        else:
-            st.write("""# The file is BALANCED between POSTIVE, NEGATIVE, and NEUTRAL Texts """)
-
-      
-        layout = go.Layout(
-            title = 'Multiple Text Analysis',
-            xaxis = dict(title = 'Sentiment'),
-            yaxis = dict(title = 'Number of reviews'),
-        )
-    
-
-        fig.update_layout(dict1=layout, overwrite=True)
-        fig.add_trace(go.Bar(name = 'Multiple Reviews', x=x, y=y))
-        st.plotly_chart(fig, use_container_width=True)
 
 
+        col1, col2 = st.columns((3,7))
+        with col1:
+
+            if count_positive > count_negative and count_positive > count_neutral:
+                st.markdown("")
+                st.markdown(f"<div style='text-align: center; font-size: 15px;'><b>Majority of the file contains POSITIVE Texts</b></div>", unsafe_allow_html=True)
+                st.markdown("")
+                st.markdown("")
+                st.image('pos.png')
+            elif count_negative > count_positive and count_negative > count_neutral:
+                st.markdown("")
+                st.markdown(f"<div style='text-align: center; font-size: 15px;'><b>Majority of the file contains NEGATIVE Texts</b></div>", unsafe_allow_html=True)
+                st.markdown("")
+                st.markdown("")
+                st.image('neg.png')
+            elif count_neutral > count_positive and count_neutral > count_negative:
+                st.markdown("")
+                st.markdown(f"<div style='text-align: center; font-size: 15px;'><b>Majority of the file contains NEUTRAL Texts</b></div>", unsafe_allow_html=True)
+                st.markdown("")
+                st.markdown("")
+                st.image('neut.png')
+            elif count_positive == count_negative and count_positive == count_neutral:
+                st.markdown("")
+                st.markdown(f"<div style='text-align: center; font-size: 15px;'><b>The file is BALANCED between POSTIVE, NEGATIVE, and NEUTRAL Texts</b></div>", unsafe_allow_html=True)
+
+
+        with col2:
+            st.markdown(f"<div style='text-align: center; font-size: 15px;'><b>Summary</b></div>", unsafe_allow_html=True)
+            fig, ax = plt.subplots()
+
+            plt.rcParams['text.color'] = 'white'
+            plt.rcParams['axes.labelcolor'] = 'white'
+            fig.set_facecolor('#262730')
+            ax.set_facecolor('#262730')
+            label = ['Positive', 'Neutral', 'Negative']
+            count = [count_positive, count_neutral, count_negative]
+            bar = ax.bar(label, count, label=label, color=["green", "yellow", "red"])
+            ax.set_ylabel('Count')
+            ax.bar_label(bar)
+            st.pyplot(fig)
+
+
+    st.markdown("")
+    st.markdown("")
     st.markdown("Download CSV Template File")
     with open("sentiment_analysis_template.csv", "rb") as fp:
-        btn = st.download_button(
+         btn = st.download_button(
             label = "CSV Template",
             data = fp,
             file_name = "sentiment_analysis_template.csv",
             mime = 'text/csv'
-        )
+            )
 
-# st.sidebar.header('')
-# st.sidebar.subheader("""Created by Revalida Group 5""")
-# st.sidebar.subheader("""All rights reserved 2023""")
+sentiment_analysis = """ Sentiment analysis, also referred to as opinion mining, is an approach to natural language processing (NLP) that identifies the emotional tone behind a body of text. 
+This is a popular way for organizations to determine and categorize opinions about a product, service, or idea. 
+It involves the use of data mining, machine learning (ML) and artificial intelligence (AI) to mine text for sentiment and subjective information."""
+
+goal = """The goal of this application is to analyze the input text provided by the user to whether the text is positive, negative or neutral in nature. """
+devs = "<br><br><br><br><br><br><br><br>Developers: <br>De Guzman, John Adrian <br>Porgalinas, Clan <br>Roberto, Jason <br>Villamil, Bernard Allen"
+
+st.sidebar.markdown("<h1 style='text-align: center'>About</p1>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<p1 style='text-align: center'>{sentiment_analysis}</p1>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<p1 style='text-align: center'>{goal}</p1>", unsafe_allow_html=True)
+st.sidebar.markdown(f"<p1 style='text-align: center'>{devs}</p1>", unsafe_allow_html=True)
+
