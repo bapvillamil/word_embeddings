@@ -3,15 +3,15 @@ import pandas as pd
 import numpy as np
 import requests
 import nltk
+import plotly.graph_objs as go
 from nltk import word_tokenize
 from nltk.corpus import wordnet
-import plotly.graph_objs as go
-import plotly.express as px
 import base64
-from plotly.offline import iplot
 from pandas.io.json import json_normalize
 from PIL import Image
 import matplotlib.pyplot as plt
+
+
 
 def negation(sentence):	
     '''
@@ -92,12 +92,19 @@ if option == "Single Text Analysis":
     single_review = st.text_input('Enter text below:')
     single_review = negation(word_tokenize(single_review))
     
-    url = 'http://127.0.0.1:8000/classify/?text='+single_review
-    r = requests.get(url)
-    result = r.json()["text_sentiment"]
+    # url = 'http://127.0.0.1:8000/classify/?text='+single_review
+    # r = requests.get(url)
+    # result = r.json()["text_sentiment"]
+
+    url = "https://t7tu46hqz8.execute-api.ap-southeast-1.amazonaws.com/Prod/predict"
+    data = {"body": "{\"data\": \""+single_review+"\"}"}
+    resp = requests.post(url, json = data)
+    result = resp.text
+    print(data)
+    print(result)
 
 
-    if result == 'positive':
+    if result == '"positive"':
         x1, x2, x3, x4 = st.columns((2, 3, 3, 2))
         with x1:
             pass
@@ -111,7 +118,7 @@ if option == "Single Text Analysis":
         with x4:
             pass
 
-    elif result == 'negative':
+    elif result == '"negative"':
         x1, x2, x3, x4 = st.columns((2, 3, 3, 2))
         with x1:
             pass
@@ -125,7 +132,7 @@ if option == "Single Text Analysis":
         with x4:
             pass
         
-    elif result == 'neutral' and single_review != "":
+    elif result == '"neutral"' and single_review != "":
         x1, x2, x3, x4 = st.columns((2, 3, 3, 2))
         with x1:
             pass
@@ -156,15 +163,28 @@ elif option == "Multiple Text Analysis":
 
     if upload_file is not None:
 
-        input_df = pd.read_csv(upload_file)
+        input_df = pd.read_csv(upload_file, index_col=False)
+
         
         for i in range(input_df.shape[0]):
-            url = 'http://127.0.0.1:8000/classify/?text='+str(input_df.iloc[i])
-            r = requests.get(url)
-            result = r.json()["text_sentiment"]
-            if result == 'positive':
+            # url = 'http://127.0.0.1:8000/classify/?text='+str(input_df.iloc[i])
+            # r = requests.get(url)
+            # result = r.json()["text_sentiment"]
+
+
+            url = "https://t7tu46hqz8.execute-api.ap-southeast-1.amazonaws.com/Prod/predict"
+
+            tweet = str(input_df.text.iloc[i])
+
+            data = {"body": "{\"data\": \""+tweet+"\"}"}
+            resp = requests.post(url, json = data)
+            result = resp.text
+            print(str(input_df.iloc[i]))
+            print(result)
+
+            if result == '"positive"':
                 count_positive += 1
-            elif result == 'negative':
+            elif result == '"negative"':
                 count_negative += 1
             else:
                 count_neutral += 1

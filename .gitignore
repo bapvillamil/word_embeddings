@@ -1,5 +1,6 @@
 env
 .vscode
+.aws-sam
 
 #ignore files
 /glove.6B.50d.txt
@@ -12,3 +13,5 @@ env
 
 #ignore folders
 /wordcloud
+
+
