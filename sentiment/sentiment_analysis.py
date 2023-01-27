@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import requests
-import nltk
-from nltk import word_tokenize
-from nltk.corpus import wordnet
 import plotly.graph_objs as go
 import plotly.express as px
 import base64
@@ -12,42 +9,6 @@ from plotly.offline import iplot
 from pandas.io.json import json_normalize
 from PIL import Image
 import matplotlib.pyplot as plt
-
-def negation(sentence):	
-    '''
-    Input: Tokenized sentence (List of words)
-    Output: Tokenized sentence with negation handled (List of words)
-    '''
-    temp = int(0)
-    for i in range(len(sentence)):
-        if sentence[i-1] in ['not',"n't"]:
-            antonyms = []
-            for syn in wordnet.synsets(sentence[i]):
-                syns = wordnet.synsets(sentence[i])
-                w1 = syns[0].name()
-                temp = 0
-                for l in syn.lemmas():
-                    if l.antonyms():
-                        antonyms.append(l.antonyms()[0].name())
-                max_dissimilarity = 0
-                for ant in antonyms:
-                    syns = wordnet.synsets(ant)
-                    w2 = syns[0].name()
-                    syns = wordnet.synsets(sentence[i])
-                    w1 = syns[0].name()
-                    word1 = wordnet.synset(w1)
-                    word2 = wordnet.synset(w2)
-                    if isinstance(word1.wup_similarity(word2), float) or isinstance(word1.wup_similarity(word2), int):
-                        temp = 1 - word1.wup_similarity(word2)
-                    if temp>max_dissimilarity:
-                        max_dissimilarity = temp
-                        antonym_max = ant
-                        sentence[i] = antonym_max
-                        sentence[i-1] = ''
-    while '' in sentence:
-        sentence.remove('')
-    sentence = ' '.join(sentence)
-    return sentence
 
 
 fig = go.Figure()
@@ -89,9 +50,8 @@ st.markdown("")
 if option == "Single Text Analysis":
 
     st.markdown("")
+
     single_review = st.text_input('Enter text below:')
-    single_review = negation(word_tokenize(single_review))
-    
     url = 'http://127.0.0.1:8000/classify/?text='+single_review
     r = requests.get(url)
     result = r.json()["text_sentiment"]
@@ -159,7 +119,8 @@ elif option == "Multiple Text Analysis":
         input_df = pd.read_csv(upload_file)
         
         for i in range(input_df.shape[0]):
-            url = 'http://127.0.0.1:8000/classify/?text='+str(input_df.iloc[i])
+            multiple_review = str(input_df.iloc[i,1])
+            url = 'http://127.0.0.1:8000/classify/?text='+multiple_review
             r = requests.get(url)
             result = r.json()["text_sentiment"]
             if result == 'positive':
