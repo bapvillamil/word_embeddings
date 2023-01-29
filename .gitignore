@@ -1,0 +1,18 @@
+env
+.vscode
+.aws-sam
+
+#ignore files
+/glove.6B.50d.txt
+/test.csv
+/train.csv
+/Twitter_Data.csv
+/dl_model.p
+
+#ignore download file
+/download.ipynb
+
+#ignore folders
+/wordcloud
+
+

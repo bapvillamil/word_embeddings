@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "SentimentAPP"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-cr1yqh796kuj"
+s3_prefix = "SentimentAPP"
+region = "ap-southeast-1"
+capabilities = "CAPABILITY_IAM"
+image_repositories = ["Sentiment=833148443366.dkr.ecr.ap-southeast-1.amazonaws.com/sentimentapp1567abd6/sentimentf692faadrepo"]
